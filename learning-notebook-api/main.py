@@ -6,6 +6,8 @@
 
 from fastapi import FastAPI
 
+from pydantic import BaseModel
+
 app= FastAPI()
 
 
@@ -81,17 +83,17 @@ notes = [
         "js_equivalent": "Object / Map",
         "tags": ["python", "collections"],
         "learned": True
-    },
-    {
-        "id": 10,
-        "term": "set",
-        "definition": "An unordered collection of unique elements",
-        "js_equivalent": "Set",
-        "tags": ["python", "collections"],
-        "learned": False
     }
 ]
 
+
+class Note(BaseModel):
+    term:str
+    definition: str
+    js_equivalent:str | None = None
+    tags:list[str]=[]
+    learned:bool = False
+    
 @app.get("/")
 def root():
     return {"message":"Successful"}
@@ -117,3 +119,11 @@ def get_term_by_id(term_id:int):
 
     return {"message":"Term not found"}
 
+
+
+@app.post("/term",status_code=201)
+def add_term(note:Note):
+    new_note = {"id":len(notes)+1}
+    new_note.update(note.model_dump())
+    notes.append(new_note)
+    return new_note
