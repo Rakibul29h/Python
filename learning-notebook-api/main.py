@@ -93,7 +93,14 @@ class Note(BaseModel):
     js_equivalent:str | None = None
     tags:list[str]=[]
     learned:bool = False
-    
+
+
+class NoteUpdate(BaseModel):
+    term:str |None = None
+    definition: str |None = None
+    js_equivalent:str | None = None
+    tags:list[str] |None = None
+    learned:bool |None = None
 @app.get("/")
 def root():
     return {"message":"Successful"}
@@ -127,3 +134,22 @@ def add_term(note:Note):
     new_note.update(note.model_dump())
     notes.append(new_note)
     return new_note
+
+@app.patch("/terms/{term_id}")
+def update_term(term_id:int, changes:NoteUpdate):
+    for note in notes:
+        if note["id"] == term_id:
+            note.update(changes.model_dump(exclude_unset=True))
+            return note
+
+    return {"message":"TERM NOT FOUND "}
+
+@app.delete("/term/{term_id}",status_code = 204)
+def delete_term(term_id:int):
+    for note in notes:
+        if note["id"]==term_id:
+            notes.remove(note)
+            return note
+
+    return {"message":"Term not found"}
+
